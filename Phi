@@ -14,3 +14,30 @@ plt.polar(theta, r_fib, 'g-', label='Fibonacci')
 plt.polar(theta, r_luc, 'r-', label='Lucas-Erweiterung')
 plt.legend()
 plt.show()
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Q-Key Approximation für Phi (vereinfacht, erweitere mit deiner 420-stelligen Primzahl Q)
+phi_approx = (1 + np.sqrt(5)) / 2  # Basis-Phi; für Q: nutze modulare Arithmetik
+
+# Funktion für Golden Spiral
+def golden_spiral(ax, turns=4, a=0.1):
+    theta = np.linspace(0, turns * 2 * np.pi, 1000)
+    r = a * np.exp(theta * np.log(phi_approx))
+    ax.plot(theta, r, 'g-', label='Goldene Spirale (Fibonacci)')
+
+# Chartres
+fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+golden_spiral(ax)
+ax.set_title('Generiertes Chartres-Labyrinth')
+plt.savefig('chartres_labyrinth_generated.png')
+plt.close(fig)
+
+# Bonn mit Wasser-Pfad (Abzweigung)
+fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+golden_spiral(ax)
+r_water = 0.8 * a * np.exp(theta * np.log(phi_approx))  # Abzweigung
+ax.plot(theta, r_water, 'b--', label='Wasserführender Pfad')
+ax.set_title('Generiertes Bonn-Brunnen-Labyrinth')
+plt.savefig('bonn_labyrinth_brunnen_generated.png')
+plt.close(fig)
