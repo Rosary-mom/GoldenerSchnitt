@@ -78,3 +78,53 @@
     </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualisierungen der Pyramiden und Hügel mit Göttlichen Gaben</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f9f9f9; }
+        .container { max-width: 1200px; margin: auto; }
+        .placeholder { width: 100%; height: 300px; background-color: #ff0000; color: white; text-align: center; padding-top: 100px; font-size: 24px; }
+        canvas { border: 1px solid #ccc; width: 100%; max-width: 600px; height: 400px; }
+        .buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .output { margin-top: 20px; padding: 10px; background-color: #fff; border: 1px solid #ddd; }
+        .tooltip { position: relative; display: inline-block; }
+        .tooltip .tooltiptext { visibility: hidden; width: 200px; background-color: #555; color: #fff; text-align: center; padding: 5px; position: absolute; z-index: 1; }
+        .tooltip:hover .tooltiptext { visibility: visible; }
+        @media (max-width: 768px) { .buttons { flex-direction: column; } } /* Responsivität */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Visualisierungen der Pyramiden und Hügel mit Göttlichen Gaben</h1>
+        <p>Diese App integriert Goldenen Schnitt, Fibonacci-Lucas-Folgen und Rosencrantz-Approximation mit Q-Key für präzise Berechnungen. Gamifiziert als Labyrinth-Prozession für spirituelles Wachstum – siehe Blog-Beitrag zu öttlichen Gaben.</p>
+        
+        <a href="chartres.html">Chartres Labyrinth mit Gaben</a>
+        <a href="bonn.html">Bonn Brunner-Labyrinth</a>
+        
+        <div id="visualization" class="placeholder">Hügel mit Labyrinth</div> <!-- Wird durch Canvas ersetzt -->
+        <canvas id="labyrinthCanvas" style="display: none;"></canvas> <!-- Für dynamische Zeichnungen -->
+        
+        <h2>Dynamische Erweiterungen (Gamifiziert)</h2>
+        <p>Kick für Simulation – Sammle Punkte durch Gaben-Sammeln.</p>
+        <div class="buttons">
+            <button onclick="extendModel()" class="tooltip">Erweitere Model (Lucas-Folge)<span class="tooltiptext">Erweitert das Modell basierend auf Lucas-Folgen für spirituelles Wachstum.</span></button>
+            <button onclick="simulateEvent()" class="tooltip">Simuliere Zufallsevent (Hybrides)<span class="tooltiptext">Simuliert hybride Ereignisse mit Zufallselementen und Goldenem Schnitt.</span></button>
+            <button onclick="liturgicalPath()" class="tooltip">Liturgischer Weg (Abzweigungen)<span class="tooltiptext">Generiert Pfade mit Abzweigungen für liturgische Prozessionen.</span></button>
+            <button onclick="downloadSVG()">Download SVG (Plotter)</button>
+            <button onclick="downloadSTL()">Download STL (3D-Printer)</button>
+        </div>
+        
+        <div id="output" class="output"></div>
+    </div>
+    
+    <script>
+        // JavaScript kommt hier hin (siehe unten)
+    </script>
+</body>
+</html>
