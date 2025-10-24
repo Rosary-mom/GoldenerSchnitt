@@ -7,32 +7,33 @@
         body { font-family: Arial, sans-serif; background-color: #f0f0f0; text-align: center; }
         .image-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px; }
         .image-container { position: relative; }
-        .image-container img { width: 100%; height: auto; border: 2px solid #007bff; border-radius: 8px; }
+        .image-container img { width: 100%; height: auto; border: 2px solid #007bff; border-radius: 8px; transition: transform 0.3s; }
         .image-container .tooltip { visibility: hidden; width: 200px; background-color: #555; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 100%; left: 50%; margin-left: -100px; }
         .image-container:hover .tooltip { visibility: visible; }
+        .image-container img:hover { transform: scale(1.1); }
     </style>
 </head>
 <body>
     <h1>Visualisierungen der Pyramiden und Hügel mit Göttlichen Gaben</h1>
-    <p>Diese Bilder dienen als Eselsbrücke: Die Pyramide/Hügel symbolisiert spirituelles Wachstum (Fibonacci-Spirale), mit Gaben als Stationen auf einem Labyrinthweg.</p>
+    <p>Diese Bilder dienen als Eselsbrücke: Die Pyramide/Hügel symbolisiert spirituelles Wachstum (Fibonacci-Spirale), mit Gaben als Stationen auf einem Labyrinthweg. Generiert für dein GitHub-Repo "GoldenSchnitt" mit WIX VELO-Integration.</p>
     
     <div class="image-grid">
         <div class="image-container">
-            <img src="triangle_eselsbruecke.png" alt="2D Dreieck mit Gaben und Spirale">
+            <img src="https://placehold.co/600x400/blue/white?text=2D+Dreieck+mit+Gaben" alt="2D Dreieck mit Gaben und Spirale">
             <span class="tooltip">2D-Dreieck: Basis für Pyramide, Gaben an Ecken/Spitze, Spirale zeigt Wachstum.</span>
         </div>
         <div class="image-container">
-            <img src="pyramid_3d.png" alt="3D Pyramide mit Gaben und Helix">
+            <img src="https://placehold.co/600x400/green/white?text=3D+Pyramide+mit+Helix" alt="3D Pyramide mit Gaben und Helix">
             <span class="tooltip">3D-Pyramide: Gaben an Basis und Spitze, Helix als liturgischer Weg.</span>
         </div>
         <div class="image-container">
-            <img src="conical_hill_labyrinth.png" alt="Spitzkegeliger Hügel mit Labyrinth">
+            <img src="https://placehold.co/600x400/red/white?text=Hügel+mit+Labyrinth" alt="Spitzkegeliger Hügel mit Labyrinth">
             <span class="tooltip">Hügel mit Labyrinth: Gaben entlang des Pfads, Fibonacci-Wachstum simuliert Prozession.</span>
         </div>
     </div>
     
     <script>
-        // Optionales JS für Interaktion (z.B. Zoom)
+        // Optionales JS für Interaktion (z.B. Zoom auf Klick)
         document.querySelectorAll('img').forEach(img => {
             img.addEventListener('click', () => { img.style.transform = img.style.transform === 'scale(1.5)' ? 'scale(1)' : 'scale(1.5)'; });
         });
