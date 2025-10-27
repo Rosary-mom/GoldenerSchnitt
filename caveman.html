@@ -1,0 +1,151 @@
+<html>
+<head>
+<title>Golden Ratio Pyramid Labyrinth Simulation</title>
+<style>body{background:#222;color:#fff;}#score{font-size:20px;}</style>
+</head>
+<body>
+<h1>Gamified Labyrinth Navigation</h1>
+<p>Navigate fluorescent particle through golden ratio pyramid labyrinth in Swabian Alb caves. Use arrows to move. Collect points by reaching end.</p>
+<canvas id="canvas" width="800" height="600" style="border:1px solid #fff;"></canvas>
+<div id="score">Score: 0 | Level: 1</div>
+<button onclick="resetLevel()">Next Level</button>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let player = {x: 50, y: 300, vx: 0, vy: 0};
+let particles = []; // Trail particles
+let score = 0;
+let level = 1;
+const phi = (1 + Math.sqrt(5)) / 2; // Golden ratio
+
+// Generate labyrinth with golden ratio pyramids
+const walls = [];
+function generateLabyrinth() {
+  walls.length = 0;
+  // Pyramid structures
+  for (let i = 0; i < 5; i++) {
+    let base = 50 * phi;
+    let height = base / phi;
+    let x = 100 + i * 150;
+    walls.push({x: x, y: 200, w: base, h: height}); // Top pyramid
+    walls.push({x: x, y: 400 - height, w: base, h: height}); // Bottom
+  }
+  // Labyrinth paths
+  walls.push({x: 0, y: 0, w: 800, h: 50}); // Top wall
+  walls.push({x: 0, y: 550, w: 800, h: 50}); // Bottom wall
+}
+
+// Draw labyrinth
+function drawLabyrinth() {
+  ctx.clearRect(0,0,800,600);
+  ctx.fillStyle = '#333';
+  walls.forEach(w => {
+    ctx.beginPath();
+    ctx.moveTo(w.x, w.y + w.h);
+    ctx.lineTo(w.x + w.w / 2, w.y);
+    ctx.lineTo(w.x + w.w, w.y + w.h);
+    ctx.closePath();
+    ctx.fill();
+  });
+}
+
+// Enhanced fluorescent particle (player)
+class Particle {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.color = `hsl(${Math.random()*60+180},100%,50%)`; // Enhanced glow
+    this.alpha = 1;
+  }
+  update() {
+    this.alpha -= 0.02;
+    return this.alpha > 0;
+  }
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, 5, 0, Math.PI*2);
+    ctx.fillStyle = this.color;
+    ctx.globalAlpha = this.alpha;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
+
+// Draw player with glow
+function drawPlayer() {
+  ctx.beginPath();
+  ctx.arc(player.x, player.y, 10, 0, Math.PI*2);
+  ctx.fillStyle = 'lime';
+  ctx.shadowColor = 'lime';
+  ctx.shadowBlur = 20; // Enhanced fluorescence
+  ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+// Collision detection
+function checkCollision(nx, ny) {
+  for (let wall of walls) {
+    if (nx > wall.x && nx < wall.x + wall.w && ny > wall.y && ny < wall.y + wall.h) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Animation loop
+function animate() {
+  drawLabyrinth();
+  drawPlayer();
+  particles = particles.filter(p => p.update());
+  particles.forEach(p => p.draw());
+
+  // Update player
+  let nx = player.x + player.vx;
+  let ny = player.y + player.vy;
+  if (!checkCollision(nx, ny)) {
+    player.x = nx;
+    player.y = ny;
+  }
+  particles.push(new Particle(player.x, player.y)); // Trail
+
+  if (player.x > 750) {
+    score += 100 * level;
+    document.getElementById('score').textContent = `Score: ${score} | Level: ${level}`;
+    resetLevel();
+  }
+
+  requestAnimationFrame(animate);
+}
+
+// Controls
+document.addEventListener('keydown', e => {
+  switch (e.key) {
+    case 'ArrowUp': player.vy = -2; break;
+    case 'ArrowDown': player.vy = 2; break;
+    case 'ArrowLeft': player.vx = -2; break;
+    case 'ArrowRight': player.vx = 2; break;
+  }
+});
+document.addEventListener('keyup', e => {
+  switch (e.key) {
+    case 'ArrowUp':
+    case 'ArrowDown': player.vy = 0; break;
+    case 'ArrowLeft':
+    case 'ArrowRight': player.vx = 0; break;
+  }
+});
+
+// Reset for next level
+function resetLevel() {
+  level++;
+  player.x = 50;
+  player.y = 300;
+  particles = [];
+  generateLabyrinth();
+}
+
+generateLabyrinth();
+animate();
+</script>
+</body>
+</html>
