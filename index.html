@@ -49,7 +49,7 @@
 <html>
 <head>
 <title>Golden Ratio Pyramid Labyrinth Simulation</title>
-<style>body{background:#222;color:#fff;}#score{font-size:20px;}</style>
+<style>body{background:#111;color:#fff;}#score{font-size:20px;}</style>
 </head>
 <body>
 <h1>Gamified Labyrinth Navigation</h1>
@@ -75,66 +75,102 @@ function generateLabyrinth() {
     let base = 50 * phi;
     let height = base / phi;
     let x = 100 + i * 150;
-    walls.push({x: x, y: 200, w: base, h: height}); // Top pyramid
-    walls.push({x: x, y: 400 - height, w: base, h: height}); // Bottom
+    walls.push({x: x, y: 200, w: base, h: height, type: 'up'}); // Top pyramid (pointing up)
+    walls.push({x: x, y: 400 - height, w: base, h: height, type: 'down'}); // Bottom (pointing down)
   }
   // Labyrinth paths
-  walls.push({x: 0, y: 0, w: 800, h: 50}); // Top wall
-  walls.push({x: 0, y: 550, w: 800, h: 50}); // Bottom wall
+  walls.push({x: 0, y: 0, w: 800, h: 50, type: 'rect'}); // Top wall
+  walls.push({x: 0, y: 550, w: 800, h: 50, type: 'rect'}); // Bottom wall
 }
 
 // Draw labyrinth
 function drawLabyrinth() {
   ctx.clearRect(0,0,800,600);
-  ctx.fillStyle = '#333';
+  ctx.fillStyle = '#111';
+  ctx.fillRect(0,0,800,600);
+  ctx.fillStyle = '#444';
+  ctx.strokeStyle = '#fff';
   walls.forEach(w => {
-    ctx.beginPath();
-    ctx.moveTo(w.x, w.y + w.h);
-    ctx.lineTo(w.x + w.w / 2, w.y);
-    ctx.lineTo(w.x + w.w, w.y + w.h);
-    ctx.closePath();
-    ctx.fill();
+    if (w.type === 'rect') {
+      ctx.fillRect(w.x, w.y, w.w, w.h);
+    } else {
+      ctx.beginPath();
+      if (w.type === 'up') {
+        ctx.moveTo(w.x, w.y + w.h);
+        ctx.lineTo(w.x + w.w / 2, w.y);
+        ctx.lineTo(w.x + w.w, w.y + w.h);
+      } else { // down
+        ctx.moveTo(w.x, w.y);
+        ctx.lineTo(w.x + w.w / 2, w.y + w.h);
+        ctx.lineTo(w.x + w.w, w.y);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
   });
 }
 
-// Enhanced fluorescent particle (player)
+// Enhanced fluorescent particle
 class Particle {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.color = `hsl(${Math.random()*60+180},100%,50%)`; // Enhanced glow
+    this.color = `hsl(${Math.random()*60+180},100%,50%)`;
     this.alpha = 1;
   }
   update() {
-    this.alpha -= 0.02;
+    this.alpha -= 0.01; // Slower fade for better trail
     return this.alpha > 0;
   }
   draw() {
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = 15; // Enhanced glow
     ctx.beginPath();
     ctx.arc(this.x, this.y, 5, 0, Math.PI*2);
     ctx.fillStyle = this.color;
     ctx.globalAlpha = this.alpha;
     ctx.fill();
     ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
   }
 }
 
 // Draw player with glow
 function drawPlayer() {
+  ctx.shadowColor = 'lime';
+  ctx.shadowBlur = 25; // Enhanced
   ctx.beginPath();
   ctx.arc(player.x, player.y, 10, 0, Math.PI*2);
   ctx.fillStyle = 'lime';
-  ctx.shadowColor = 'lime';
-  ctx.shadowBlur = 20; // Enhanced fluorescence
   ctx.fill();
   ctx.shadowBlur = 0;
 }
 
-// Collision detection
+// Improved triangle collision detection
+function pointInTriangle(px, py, x1, y1, x2, y2, x3, y3) {
+  const area = 0.5 * (-y2*x3 + y1*(-x2 + x3) + x1*(y2 - y3) + x2*y3 - x3*y2);
+  const s = 1/(2*area)*(y1*x3 - x1*y3 + px*(y3 - y1) + x3*(y1 - py) + x1*(py - y3));
+  const t = 1/(2*area)*(x1*y2 - y1*x2 + py*(x1 - x2) + y2*(px - x1) + x2*(y1 - py));
+  return s > 0 && t > 0 && (1 - s - t) > 0;
+}
+
 function checkCollision(nx, ny) {
   for (let wall of walls) {
-    if (nx > wall.x && nx < wall.x + wall.w && ny > wall.y && ny < wall.y + wall.h) {
-      return true;
+    if (wall.type === 'rect') {
+      if (nx > wall.x - 10 && nx < wall.x + wall.w + 10 && ny > wall.y - 10 && ny < wall.y + wall.h + 10) {
+        return true;
+      }
+    } else if (wall.type === 'up') {
+      const x1 = wall.x, y1 = wall.y + wall.h;
+      const x2 = wall.x + wall.w / 2, y2 = wall.y;
+      const x3 = wall.x + wall.w, y3 = wall.y + wall.h;
+      if (pointInTriangle(nx, ny, x1, y1, x2, y2, x3, y3)) return true;
+    } else if (wall.type === 'down') {
+      const x1 = wall.x, y1 = wall.y;
+      const x2 = wall.x + wall.w / 2, y2 = wall.y + wall.h;
+      const x3 = wall.x + wall.w, y3 = wall.y;
+      if (pointInTriangle(nx, ny, x1, y1, x2, y2, x3, y3)) return true;
     }
   }
   return false;
@@ -154,7 +190,9 @@ function animate() {
     player.x = nx;
     player.y = ny;
   }
-  particles.push(new Particle(player.x, player.y)); // Trail
+  if (Math.abs(player.vx) > 0 || Math.abs(player.vy) > 0) {
+    particles.push(new Particle(player.x, player.y)); // Add trail only when moving
+  }
 
   if (player.x > 750) {
     score += 100 * level;
