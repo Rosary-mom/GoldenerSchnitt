@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="utf-8">
-  <title>ROSARY RIDGEBED • 7 Gaben des Hl. Geistes – Goldener Weg</title>
+  <title>ROSARY RIDGEBED©®™ • 7 Gaben des Hl. Geistes – Goldener Weg</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.167.1/examples/js/controls/OrbitControls.js"></script>
@@ -291,14 +291,14 @@ window.onresize = ()=>{
 </head>
 <body>
   <div class="card">
-    <h1>Das sieht jetzt viel besser aus!</h1>
-    <p>Weicher Hintergrund, angenehmer Text, subtile Noise-Texture – 2025-ready.</p>
+    <h1>Next level!</h1>
+    <p>ROSARY©®™ 2025-ready, steady, go!.</p>
   </div>
 </body>
 </html>        
 <html>
 <head>
-<title>Golden Ratio Pyramid Labyrinth Simulation</title>
+<title>Golden Ratio ROSARY ©®™ Pyramid Labyrinth Simulation</title>
 <style>body{background:#111;color:#fff;}#score{font-size:20px;}</style>
 </head>
 <body>
@@ -520,6 +520,111 @@ function resetLevel() {
 
 generateLabyrinth();
 animate();
+</script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>ROSARY RIDGEBED©®™ • Gamifiziertes Labyrinth der 7 Gaben</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.167.1/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.167.1/examples/js/exporters/STLExporter.js"></script>
+  <style>
+    body { margin:0; overflow:hidden; background:radial-gradient(circle at center,#0b1a33 0%,#000 100%); color:#fff; font-family:Arial,sans-serif; }
+    #info,#controls{position:absolute;padding:15px;border-radius:12px;backdrop-filter:blur(12px);background:rgba(0,0,0,0.7);border:1px solid rgba(212,175,55,0.5);z-index:10;box-shadow:0 0 20px rgba(212,175,55,0.3);}
+    #info{top:10px;left:10px;max-width:420px;}
+    #controls{bottom:20px;left:20px;}
+    button{padding:10px 20px;margin:5px;background:linear-gradient(45deg,#d4af37,#ffd700);border:none;border-radius:8px;cursor:pointer;font-weight:bold;color:#000;transition:0.2s;}
+    button:hover{transform:scale(1.05);}
+    #modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:100;justify-content:center;align-items:center;backdrop-filter:blur(8px);}
+    #modal-content{background:#111;padding:40px;border-radius:15px;border:2px solid #d4af37;max-width:600px;text-align:center;}
+    .close{position:absolute;top:10px;right:20px;font-size:36px;cursor:pointer;color:#d4af37;}
+    #gameOverlay{display:none;position:fixed;inset:0;background:#000;z-index:200;justify-content:center;align-items:center;flex-direction:column;}
+    #gameCanvas{border:2px solid gold;}
+    #gameUI{position:absolute;top:20px;left:20px;color:gold;font-size:24px;font-weight:bold;}
+    #gameInstructions{position:absolute;bottom:20px;color:#fff;text-align:center;max-width:800px;}
+  </style>
+</head>
+<body>
+<div id="canvas-container"></div>
+
+<div id="info">
+  <h1 style="margin:0;color:#d4af37;text-shadow:0 0 10px gold">7 Gaben – Goldener Weg</h1>
+  <button onclick="toggleView()">Modus: Laien ↔ Forscher</button>
+  <div id="laien"><p><b>Prinzip:</b> Spiralförmig (Fibonacci). Sammle Gaben!</p></div>
+  <div id="forscher" style="display:none"><p>Rosenkranz n=17→153<br>S(r)=k·r^φ</p></div>
+</div>
+
+<div id="controls">
+  <button onclick="resetCamera()">Ansicht zurück</button>
+  <button onclick="toggleRotation()">Rotation an/aus</button>
+  <button onclick="exportSTL()">3D STL</button>
+  <button onclick="toggleGame()">🎮 Labyrinth-Spiel</button>
+</div>
+
+<div id="modal" onclick="closeModal()">
+  <div id="modal-content" onclick="event.stopPropagation()">
+    <span class="close" onclick="closeModal()">×</span>
+    <h2 id="modal-title" style="color:#ffd700"></h2>
+    <hr style="border-color:#444">
+    <p id="modal-psalm"></p>
+    <p id="modal-denk" style="color:#d4af37;font-style:italic"></p>
+  </div>
+</div>
+
+<div id="gameOverlay" onclick="if(event.target.id==='gameOverlay')toggleGame()">
+  <div id="gameUI">
+    <div>Score: <span id="score">0</span></div>
+    <div>Level: <span id="level">1</span>/7 (Gabe: <span id="currentGabe"></span>)</div>
+    <div>Gaben: <span id="collected">0</span>/7</div>
+  </div>
+  <canvas id="gameCanvas" width="1000" height="700"></canvas>
+  <div id="gameInstructions">
+    Pfeiltasten: Bewegen | Goldene Spirale hochklettern | Gabe am Ende sammeln | φ-Multiplikator!
+  </div>
+</div>
+
+<script>
+// 3D Setup (wie vorher, gekürzt)
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x001133);scene.fog=new THREE.FogExp2(0x001133,0.012);
+const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1000);camera.position.set(12,14,20);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(devicePixelRatio);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;document.getElementById('canvas-container').appendChild(renderer.domElement);
+const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.autoRotate=true;controls.autoRotateSpeed=0.5;
+scene.add(new THREE.AmbientLight(0xffffff,0.6));const sun=new THREE.DirectionalLight(0xfffaed,4);sun.position.set(20,50,20);sun.castShadow=true;sun.shadow.mapSize.width=sun.shadow.mapSize.height=2048;scene.add(sun);scene.add(new THREE.PointLight(0xffd700,6,40).setPosition(0,12,0));
+function grass(){const c=document.createElement('canvas');c.width=c.height=512;const ctx=c.getContext('2d');ctx.fillStyle='#1a3a0b';ctx.fillRect(0,0,512,512);for(let i=0;i<8000;i++){ctx.fillStyle=Math.random()>0.5?'#2a5a1b':'#3a7a2b';ctx.fillRect(Math.random()*512,Math.random()*512,2+Math.random()*4,2+Math.random()*6);}const tex=new THREE.CanvasTexture(c);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(10,10);return tex;}
+const grassTex=grass();
+const colors=[0x5c4033,0x6b4630,0x5d4037,0x4a3728,0x3e2b1f,0x2b1e16,0x228b22];const gaben=["Furcht","Frömmigkeit","Erkenntnis","Stärke","Rat","Verstand","Weisheit"];const terraces=[];for(let i=0;i<7;i++){const h=2.8;const rTop=10-i*1.1,rBot=10-(i-1)*1.1;const geo=new THREE.CylinderGeometry(i===6?rTop-0.5:rTop,rBot,h,80,1,false);const mat=i===6?new THREE.MeshStandardMaterial({map:grassTex,bumpMap:grassTex,bumpScale:0.4,roughness:0.85}):new THREE.MeshStandardMaterial({color:colors[i],roughness:0.9,metalness:0.05});const mesh=new THREE.Mesh(geo,mat);mesh.position.y=-10+i*h+h/2;mesh.castShadow=mesh.receiveShadow=true;mesh.userData.index=i;scene.add(mesh);terraces.push(mesh);}
+const points=[];let r=0.3,a=0,y=-10;for(let i=0;i<1600;i++){points.push(new THREE.Vector3(r*Math.cos(a),y,r*Math.sin(a)));a+=0.13;r+=0.0085;if(i%120===0)y+=0.75;}const spiral=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),1600,0.28,16,false),new THREE.MeshPhysicalMaterial({color:0xffd700,metalness:1,roughness:0.1,emissive:0xaa8800,emissiveIntensity:0.8}));spiral.castShadow=true;scene.add(spiral);
+const pyramid=new THREE.Mesh(new THREE.ConeGeometry(2,5,6),new THREE.MeshPhysicalMaterial({color:0xffd700,metalness:1,roughness:0.05,clearcoat:1}));pyramid.position.y=10.5;pyramid.castShadow=true;scene.add(pyramid);
+const starShape=new THREE.Shape();for(let i=0;i<12;i++){const ang=i/6*Math.PI;const rad=i%2===0?2:1;i===0?starShape.moveTo(rad*Math.cos(ang),rad*Math.sin(ang)):starShape.lineTo(rad*Math.cos(ang),rad*Math.sin(ang));}const star=new THREE.Mesh(new THREE.ExtrudeGeometry(starShape,{depth:0.5,bevelEnabled:true,bevelThickness:0.2}),new THREE.MeshPhysicalMaterial({color:0xffd700,metalness:1,roughness:0.05}));star.rotation.x=-Math.PI/2;star.position.y=13.8;star.castShadow=true;scene.add(star);
+const data=[{psalm:"Psalm 111",text:"Die Furcht des Herrn ist der Weisheit Anfang.",denk:"Fundament-Gesetz"},{psalm:"Psalm 120",text:"In meiner Not rief ich zum Herrn …",denk:"Kingfisher-Gesetz"},{psalm:"Psalm 122",text:"Freut euch mit Jerusalem …",denk:"DiaKonos-Gesetz"},{psalm:"Psalm 124",text:"Wäre der Herr nicht bei uns …",denk:"Skaleninvarianz"},{psalm:"Psalm 126",text:"Die mit Tränen säen …",denk:"Hebel-Gesetz"},{psalm:"Psalm 130",text:"Aus den Tiefen rufe ich …",denk:"Coan-Paradoxon"},{psalm:"Psalm 134",text:"Segnet den Herrn …",denk:"Heureka – Vollendung"}];
+const ray=new THREE.Raycaster();const mouse=new THREE.Vector2();window.addEventListener('click',e=>{if(document.getElementById('gameOverlay').style.display==='flex')return;mouse.x=(e.clientX/innerWidth)*2-1;mouse.y=-(e.clientY/innerHeight)*2+1;ray.setFromCamera(mouse,camera);const hits=ray.intersectObjects(terraces);if(hits.length){const i=hits[0].object.userData.index;document.getElementById('modal-title').textContent=gaben[i];document.getElementById('modal-psalm').textContent=data[i].psalm+": "+data[i].text;document.getElementById('modal-denk').textContent="Denkgesetz: "+data[i].denk;document.getElementById('modal').style.display='flex';controls.autoRotate=false;}});
+function exportSTL(){const exporter=new THREE.STLExporter();const result=exporter.parse(scene);const blob=new Blob([result],{type:'text/plain'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='rosary-7gaben.stl';link.click();}
+function toggleView(){const l=document.getElementById('laien'),f=document.getElementById('forscher');[l.style.display,f.style.display]=[f.style.display,l.style.display];}
+function resetCamera(){camera.position.set(12,14,20);controls.target.set(0,3,0);controls.update();}
+function toggleRotation(){controls.autoRotate=!controls.autoRotate;}
+function closeModal(){document.getElementById('modal').style.display='none';controls.autoRotate=true;}
+let star=scene.children.find(m=>m.geometry&&m.geometry.type==='ExtrudeGeometry');function animate(){requestAnimationFrame(animate);if(star)star.rotation.y+=0.004;controls.update();renderer.render(scene,camera);}animate();window.onresize=()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);};
+
+// === GAMIFIZIERTES LABYRINTH ===
+let gameActive=false,gameCtx,gameCanvas,player={x:50,y:350,vx:0,vy:0},particles=[],score=0,level=1,collected=0,const phi=(1+Math.sqrt(5))/2;const b=Math.log(phi)/(Math.PI/2);let walls=[],gifts=[],currentGabe=0;
+const levelColors=['#8B4513','#D2691E','#A0522D','#8B4513','#654321','#4B3621','#228B22'];
+function initGame(){gameCanvas=document.getElementById('gameCanvas');gameCtx=gameCanvas.getContext('2d');generateLevel();}
+function generateLevel(){walls=[];gifts=[];const cx=500,cy=350;walls.push({x:0,y:0,w:1000,h:50,type:'rect'},{x:0,y:650,w:1000,h:50,type:'rect'});for(let i=0;i<level*2;i++){let base=40*phi**((level-1)/3),height=base/phi,x=100+i*80+Math.sin(i)*50;walls.push({x,y:cy-base/2,w:base,h:height,type:'up'},{x,y:cy+base/2-height,w:base,h:height,type:'down'});}const spiral={type:'spiral',cx,cy,a:15*level,b,maxTheta:6*Math.PI,segments:[]};for(let theta=0;theta<=spiral.maxTheta;theta+=0.15){let r=spiral.a*Math.exp(spiral.b*theta);spiral.segments.push({x:cx+r*Math.cos(theta),y:cy+r*Math.sin(theta),r:8});}walls.push(spiral);gifts.push({x:950,y:350,r:15,color:0xffff00});updateUI();}
+function drawGame(){gameCtx.fillStyle='#111';gameCtx.fillRect(0,0,1000,700);gameCtx.strokeStyle='#ffd700';gameCtx.lineWidth=3;gameCtx.fillStyle=levelColors[level-1]||'#fff';walls.forEach(w=>{if(w.type==='rect'){gameCtx.fillRect(w.x,w.y,w.w,w.h);}else if(w.type==='up'){gameCtx.beginPath();gameCtx.moveTo(w.x,w.y+w.h);gameCtx.lineTo(w.x+w.w/2,w.y);gameCtx.lineTo(w.x+w.w,w.y+w.h);gameCtx.closePath();gameCtx.fill();gameCtx.stroke();}else if(w.type==='down'){gameCtx.beginPath();gameCtx.moveTo(w.x,w.y);gameCtx.lineTo(w.x+w.w/2,w.y+w.h);gameCtx.lineTo(w.x+w.w,w.y);gameCtx.closePath();gameCtx.fill();gameCtx.stroke();}else if(w.type==='spiral'){gameCtx.beginPath();gameCtx.moveTo(w.segments[0].x,w.segments[0].y);w.segments.forEach(s=>gameCtx.lineTo(s.x,s.y));gameCtx.stroke();}});gifts.forEach(g=>{gameCtx.shadowColor='#ffff00';gameCtx.shadowBlur=20;gameCtx.beginPath();gameCtx.arc(g.x,g.y,g.r,0,Math.PI*2);gameCtx.fillStyle=g.color;gameCtx.fill();gameCtx.shadowBlur=0;});particles=particles.filter(p=>p.update()).forEach(p=>p.draw());drawPlayer();}
+function drawPlayer(){gameCtx.shadowColor='lime';gameCtx.shadowBlur=30;gameCtx.beginPath();gameCtx.arc(player.x,player.y,12,0,Math.PI*2);gameCtx.fillStyle='lime';gameCtx.fill();gameCtx.shadowBlur=0;}
+class Particle{constructor(x,y){this.x=x;this.y=y;this.color=`hsl(${Math.random()*60+120},100%,60%)`;this.alpha=1;}update(){this.alpha-=0.015;return this.alpha>0;}draw(){gameCtx.shadowColor=this.color;gameCtx.shadowBlur=20;gameCtx.beginPath();gameCtx.arc(this.x,this.y,6,0,Math.PI*2);gameCtx.fillStyle=this.color;gameCtx.globalAlpha=this.alpha;gameCtx.fill();gameCtx.globalAlpha=1;gameCtx.shadowBlur=0;}}
+function pointInTriangle(px,py,x1,y1,x2,y2,x3,y3){const area=0.5*(-y2*x3+y1*(-x2+x3)+x1*(y2-y3)+x2*y3-x3*y2);const s=1/(2*area)*(y1*x3-x1*y3+px*(y3-y1)+x3*(y1-py)+x1*(py-y3));const t=1/(2*area)*(x1*y2-y1*x2+py*(x1-x2)+y2*(px-x1)+x2*(y1-py));return s>0&&t>0&&(1-s-t)>0;}
+function collides(nx,ny){for(let wall of walls){if(wall.type==='rect'){if(nx+12>wall.x&&nx-12<wall.x+wall.w&&ny+12>wall.y&&ny-12<wall.y+wall.h)return true;}else if(wall.type==='up'||wall.type==='down'){const pts=wall.type==='up'?[[wall.x,wall.y+wall.h],[wall.x+wall.w/2,wall.y],[wall.x+wall.w,wall.y+wall.h]]:[[wall.x,wall.y],[wall.x+wall.w/2,wall.y+wall.h],[wall.x+wall.w,wall.y]];if(pointInTriangle(nx,ny,...pts.flat()))return true;}else if(wall.type==='spiral'){for(let seg of wall.segments){let dx=nx-seg.x,dy=ny-seg.y;if(Math.hypot(dx,dy)<12+seg.r)return true;}}}return false;}
+function checkGift(){for(let i=0;i<gifts.length;i++){let g=gifts[i];if(Math.hypot(player.x-g.x,player.y-g.y)<g.r+12){collected++;score+=100*level*phi**collected;gifts.splice(i,1);showGabe(level-1);if(collected===7){alert(`🏆 Vollendung! Score: ${Math.round(score)}`);toggleGame();return;}level++;generateLevel();break;}}}
+function showGabe(i){document.getElementById('modal-title').textContent=gaben[i];document.getElementById('modal-psalm').textContent=data[i].psalm+": "+data[i].text;document.getElementById('modal-denk').textContent="Denkgesetz: "+data[i].denk;document.getElementById('modal').style.display='flex';}
+function updateUI(){document.getElementById('score').textContent=Math.round(score);document.getElementById('level').textContent=level;document.getElementById('collected').textContent=collected;document.getElementById('currentGabe').textContent(gaben[level-1]||'🏆');}
+function gameLoop(){drawGame();let nx=player.x+player.vx,ny=player.y+player.vy;if(!collides(nx,ny)){player.x=nx;player.y=ny;if(Math.hypot(player.vx,player.vy)>0)particles.push(new Particle(player.x,player.y));}checkGift();if(player.x>980){collected++;score+=200*phi**collected;showGabe(level-1);level++;generateLevel();}updateUI();if(gameActive)requestAnimationFrame(gameLoop);}
+function toggleGame(){gameActive=!gameActive;const overlay=document.getElementById('gameOverlay');overlay.style.display=gameActive?'flex':'none';controls.autoRotate=!gameActive;if(gameActive){initGame();gameLoop();player.x=50;player.y=350;score=0;level=1;collected=0;generateLevel();}else{controls.autoRotate=true;}}
+document.addEventListener('keydown',e=>{if(!gameActive)return;switch(e.key){case'ArrowUp':player.vy=-3;break;case'ArrowDown':player.vy=3;break;case'ArrowLeft':player.vx=-3;break;case'ArrowRight':player.vx=3;break;}});document.addEventListener('keyup',e=>{if(!gameActive)return;switch(e.key){case'ArrowUp':case'ArrowDown':player.vy=0;break;case'ArrowLeft':case'ArrowRight':player.vx=0;break;}});
 </script>
 </body>
 </html>
