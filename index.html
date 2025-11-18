@@ -2,91 +2,163 @@
 <html lang="de">
 <head>
   <meta charset="utf-8">
-  <title>ROSARY RIDGEBED • 7 Gaben Hügelbeet Pyramide</title>
+  <title>ROSARY RIDGEBED • 7 Gaben Hügelbeet Pyramide (Optimiert)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.167.1/examples/js/controls/OrbitControls.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.167.1/examples/js/exporters/STLExporter.js"></script>
+  
   <style>
-    body{margin:0;overflow:hidden;background:#001133;color:#fff;font-family:Arial}
-    #info,#controls{position:absolute;padding:20px;border-radius:12px;backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,0.5);background:rgba(0,0,0,0.7);z-index:10}
+    body { 
+        margin: 0; 
+        overflow: hidden; 
+        /* BESSERER HINTERGRUND: Dunkles Weltall-Radial-Gradient */
+        background: radial-gradient(circle at center, #0b1a33 0%, #000000 100%); 
+        color: #fff; 
+        font-family: Arial, sans-serif; 
+    }
+    #info,#controls {
+        position:absolute;padding:20px;border-radius:12px;backdrop-filter:blur(12px);
+        border:1px solid rgba(212,175,55,0.5);background:rgba(0,0,0,0.7);z-index:10;
+        box-shadow: 0 0 20px rgba(212,175,55,0.2);
+    }
     #info{top:10px;left:10px;max-width:420px}
     #controls{bottom:20px;left:20px}
-    button{padding:10px 20px;margin:5px;background:linear-gradient(45deg,#d4af37,#ffd700);border:none;border-radius:8px;cursor:pointer;font-weight:bold;color:#000;box-shadow:0 4px 10px rgba(0,0,0,0.5)}
-    #modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:100;justify-content:center;align-items:center}
-    #modal-content{background:#111;padding:35px;border-radius:15px;border:3px solid #d4af37;max-width:650px;text-align:center}
-    .close{float:right;font-size:32px;cursor:pointer;color:#d4af37}
+    button{
+        padding:10px 20px;margin:5px;
+        background:linear-gradient(45deg,#d4af37,#ffd700);
+        border:none;border-radius:8px;cursor:pointer;font-weight:bold;color:#000;
+        box-shadow:0 4px 10px rgba(0,0,0,0.5); transition: transform 0.1s;
+    }
+    button:hover{transform: scale(1.05);}
+    #modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;justify-content:center;align-items:center; backdrop-filter: blur(5px);}
+    #modal-content{background:#1a1a1a;padding:35px;border-radius:15px;border:2px solid #d4af37;max-width:600px;text-align:center; position: relative;}
+    .close{position: absolute; top: 10px; right: 20px; font-size:32px;cursor:pointer;color:#d4af37;}
   </style>
 </head>
 <body>
 <div id="canvas-container"></div>
 
 <div id="info">
-  <h1 style="margin:0;color:#d4af37;text-shadow:0 0 15px gold">7 Gaben des Hl. Geistes – Goldener Weg</h1>
-  <button onclick="toggleView()">Laien ↔ Forscher Modus</button>
-  <div id="laien"><p style="line-height:1.6"><b>Eselsbrücke:</b> Der Hügel wächst wie eine Schnecke 🐌 – jede Windung größer (Fibonacci). Jede Schicht ist eine Gabe – von der Demut unten bis zur Weisheit oben.</p></div>
+  <h1 style="margin:0;color:#d4af37;text-shadow:0 0 10px rgba(212,175,55,0.5)">7 Gaben des Hl. Geistes – Goldener Weg</h1>
+  <button onclick="toggleView()">Modus: Laien ↔ Forscher</button>
+  <div id="laien"><p style="line-height:1.6"><b>Das Prinzip:</b> Der Hügel wächst spiralförmig wie ein Schneckenhaus 🐌 (Fibonacci). Jede Schicht ist eine Gabe – von der Demut unten bis zur Weisheit oben.</p></div>
   <div id="forscher" style="display:none"><p style="line-height:1.6"><b>Rosenkranz-Approximation n=17 → 153</b><br>h ≈ Σ binom(17,k) (1/φ)^k · h^(k)(Q)<br>Skaleninvarianz: S(r) = k · r^φ</p></div>
 </div>
 
 <div id="controls">
-  <button onclick="camera.position.set(10,10,15);controls.reset()">Ansicht zurück</button>
-  <button onclick="isRotating=!isRotating">Rotation an/aus</button>
+  <button onclick="resetCamera()">Ansicht zurück</button>
+  <button onclick="toggleRotation()">Rotation an/aus</button>
   <button onclick="exportSTL()">3D-Druck STL</button>
 </div>
 
-<div id="modal" onclick="this.style.display='none'">
+<div id="modal" onclick="closeModal()">
   <div id="modal-content" onclick="event.stopPropagation()">
-    <span class="close">×</span>
-    <h2 id="modal-title" style="color:#d4af37"></h2>
+    <span class="close" onclick="closeModal()">×</span>
+    <h2 id="modal-title" style="color:#ffd700"></h2>
+    <hr style="border-color: #333; margin: 15px 0;">
     <p id="modal-psalm"></p>
-    <p id="modal-denk" style="color:#d4af37;font-style:italic;"></p>
+    <p id="modal-denk" style="color:#d4af37;font-style:italic; margin-top: 20px;"></p>
   </div>
 </div>
 
 <script>
+// --- KONFIGURATION & SETUP ---
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x001133);
+scene.fog = new THREE.FogExp2(0x001133, 0.015);
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
-camera.position.set(10,10,15);
+camera.position.set(10, 12, 18); // Bessere Startposition
 
 const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+// WICHTIG: SCHATTEN AKTIVIEREN
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
+renderer.toneMapping = THREE.ACESFilmicToneMapping; // Bessere Farbwiedergabe
 document.getElementById('canvas-container').appendChild(renderer.domElement);
 
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.autoRotate = true; // Startet automatisch
+controls.autoRotateSpeed = 0.5;
 
+// Zustand für die Rotation (wird von controls.autoRotate überschrieben)
 let isRotating = true;
 const terraces = [];
 
-// Gras-Textur (wird asynchron geladen – fallback farbe)
-const loader = new THREE.TextureLoader();
-let grass;
-loader.load('https://i.imgur.com/4tZEm8T.jpeg', texture => {
-  grass = texture;
-  grass.wrapS = grass.wrapT = THREE.RepeatWrapping;
-  grass.repeat.set(12,12);
-  // neu rendern wenn Textur geladen
-  renderer.render(scene, camera);
-});
+// --- PROZEDURALE TEXTUR (Löst CORS-Problem) ---
+function createGrassTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512; canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#2a5a1b';
+  ctx.fillRect(0,0,512,512);
+  for(let i=0; i<5000; i++) {
+    ctx.fillStyle = Math.random() > 0.5 ? '#3a7a2b' : '#1a3a0b';
+    ctx.fillRect(Math.random()*512, Math.random()*512, Math.random()*3 + 1, Math.random()*5 + 1);
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(8, 8);
+  return texture;
+}
+const grassTexture = createGrassTexture();
 
-// 7 Schichten Hügelbeet
-const colors = [0x8b4513,0x8b5a2b,0x228b22,0x654321,0x4b3621,0x5d4037,0x228b22];
+// --- BELEUCHTUNG ---
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
+
+const sunLight = new THREE.DirectionalLight(0xfffaed, 3.5);
+sunLight.position.set(20, 50, 20);
+sunLight.castShadow = true; // Licht wirft Schatten
+sunLight.shadow.mapSize.width = 2048;
+sunLight.shadow.mapSize.height = 2048;
+sunLight.shadow.camera.near = 10;
+sunLight.shadow.camera.far = 100;
+scene.add(sunLight);
+
+const goldLight = new THREE.PointLight(0xffd700, 5, 30);
+goldLight.position.set(0, 10, 0);
+scene.add(goldLight);
+
+// --- 7 Schichten (Gaben) ---
+const colors = [0x5c4033, 0x70503c, 0x5d4037, 0x4a3728, 0x3e2b1f, 0x2b1e16, 0x228b22];
 const gaben = ["Furcht des Herrn","Frömmigkeit","Erkenntnis","Stärke","Rat","Verstand","Weisheit"];
-for(let i=0;i<7;i++){
-  const h = (i+1)/8*16;
-  const r = 9*(1-i/8);
-  const geo = new THREE.CylinderGeometry(r, r+1.2, 2.5, 64,1,true);
-  const mat = new THREE.MeshPhongMaterial({
-    color: colors[i],
-    map: i===6 && grass ? grass : null,
-    bumpMap: grass || null,
-    bumpScale: 0.7,
-    shininess: 40
-  });
+
+for(let i=0; i<7; i++){
+  const height = 2.5;
+  const bottomRadius = 9 * (1 - i/8) + 1.2;
+  const topRadius = 9 * (1 - (i+1)/8) + 1.2;
+  
+  const geo = new THREE.CylinderGeometry(topRadius, bottomRadius, height, 64);
+  
+  let mat;
+  if (i === 6) { // Oberste Schicht
+     mat = new THREE.MeshStandardMaterial({ 
+       map: grassTexture,
+       bumpMap: grassTexture,
+       bumpScale: 0.5,
+       color: colors[i],
+       roughness: 0.8
+     });
+  } else {
+     // Andere Schichten
+     mat = new THREE.MeshStandardMaterial({ 
+       color: colors[i], 
+       roughness: 0.9, 
+       metalness: 0.1
+     });
+  }
+
   const mesh = new THREE.Mesh(geo, mat);
-  mesh.position.y = -8 + h;
+  mesh.position.y = -8 + (i * height) + (height/2); // Korrigiert y-Position
+  mesh.castShadow = true; // Wirft Schatten
+  mesh.receiveShadow = true; // Empfängt Schatten
+  mesh.userData = { id: i }; // Speichert die ID für Raycasting
   scene.add(mesh);
   terraces.push(mesh);
 }
@@ -102,8 +174,15 @@ for(let i=0;i<1400;i++){
 }
 const curve = new THREE.CatmullRomCurve3(points);
 const tubeGeo = new THREE.TubeGeometry(curve,1400,0.25,16,false);
-const tubeMat = new THREE.MeshPhongMaterial({color:0xffd700,emissive:0xaa8800,shininess:150});
+const tubeMat = new THREE.MeshPhysicalMaterial({ // Physisches Gold
+    color: 0xffd700, 
+    emissive: 0xaa8800, 
+    emissiveIntensity: 0.7,
+    metalness: 1.0, 
+    roughness: 0.1 
+});
 const spiral = new THREE.Mesh(tubeGeo, tubeMat);
+spiral.castShadow = true;
 scene.add(spiral);
 
 // Salomonisches Siegel + Pyramide oben
@@ -112,53 +191,55 @@ const outer = 1.5, inner = 0.75;
 for(let i=0;i<12;i++){
   const a = i/6*Math.PI;
   const r = i%2===0 ? outer : inner;
-  i===0 ? starShape.moveTo(r*Math.sin(a),r*Math.cos(a)) : starShape.lineTo(r*Math.sin(a),r*Math.cos(a));
+  if(i===0) starShape.moveTo(r*Math.sin(a),r*Math.cos(a));
+  else starShape.lineTo(r*Math.sin(a),r*Math.cos(a));
 }
 starShape.closePath();
 const starGeo = new THREE.ExtrudeGeometry(starShape,{depth:0.4,bevelEnabled:true});
-const starMat = new THREE.MeshPhongMaterial({color:0xffd700,emissive:0xaa8800});
+const starMat = new THREE.MeshPhysicalMaterial({ // Physisches Gold
+    color: 0xffd700, 
+    metalness: 1.0, 
+    roughness: 0.05, 
+    clearcoat: 1.0
+});
 const star = new THREE.Mesh(starGeo, starMat);
 star.rotation.x = -Math.PI/2;
-star.position.set(0,10.6,0);
+star.position.set(0, 10.6 + 4.2 + 1, 0); // Korrigierte y-Position (muss über der Pyramide liegen)
+star.castShadow = true;
 scene.add(star);
 
 const pyramid = new THREE.Mesh(new THREE.ConeGeometry(1.9,4.2,6), starMat);
-pyramid.position.y = 9.9;
+pyramid.position.y = 10.6 + 4.2/2;
+pyramid.castShadow = true;
 scene.add(pyramid);
 
-// LICHT – jetzt wirklich hell!
-scene.add(new THREE.AmbientLight(0xffffff, 5));
-const sun = new THREE.DirectionalLight(0xfff8e1, 12);
-sun.position.set(15,40,15);
-scene.add(sun);
-scene.add(new THREE.PointLight(0xffd700, 10, 100));
-scene.add(new THREE.HemisphereLight(0x87ceeb, 0x228b22, 6));
 
 // Modal-Daten
 const data = [
+  {psalm:"Psalm 111", text:"Die Furcht des Herrn ist der Weisheit Anfang.", denk:"Fundament-Gesetz"},
   {psalm:"Psalm 120", text:"In meiner Not rief ich zum Herrn …", denk:"Kingfisher-Gesetz"},
   {psalm:"Psalm 122", text:"Freut euch mit mir …", denk:"DiaKonos-Gesetz"},
   {psalm:"Psalm 124", text:"Wäre der Herr nicht bei uns …", denk:"Skaleninvarianz"},
   {psalm:"Psalm 126", text:"Die mit Tränen säen …", denk:"Hebel-Gesetz"},
-  {psalm:"Psalm 128", text:"Wohl dem, der den Herrn fürchtet …", denk:"Rosenkranz-Iteration"},
   {psalm:"Psalm 130", text:"Aus den Tiefen rufe ich …", denk:"Coan-Paradoxon"},
   {psalm:"Psalm 134", text:"Segnet den Herrn …", denk:"Heureka – Vollendung"}
 ];
 
-// Raycaster – jetzt 100 % korrekt
+// Raycaster – jetzt korrekt
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
-window.addEventListener('click', e => {
+window.addEventListener('click', e => { 
   mouse.x = (e.clientX/window.innerWidth)*2-1;
   mouse.y = -(e.clientY/window.innerHeight)*2+1;
   raycaster.setFromCamera(mouse,camera);
   const hits = raycaster.intersectObjects(terraces);
   if(hits.length){
-    const i = terraces.indexOf(hits[0].object);
+    const i = hits[0].object.userData.id; // Nutzt die gespeicherte ID
     document.getElementById('modal-title').textContent = gaben[i];
     document.getElementById('modal-psalm').textContent = data[i].psalm + ": " + data[i].text;
     document.getElementById('modal-denk').textContent = "Denkgesetz: " + data[i].denk;
     document.getElementById('modal').style.display = 'flex';
+    controls.autoRotate = false;
   }
 });
 
@@ -176,15 +257,38 @@ function exportSTL(){
 function toggleView(){
   const l = document.getElementById('laien');
   const f = document.getElementById('forscher');
-  l.style.display = l.style.display==='none' ? 'block' : 'none';
-  f.style.display = f.style.display==='none' ? 'block' : 'none';
+  if (l.style.display === 'none') {
+    l.style.display = 'block';
+    f.style.display = 'none';
+  } else {
+    l.style.display = 'none';
+    f.style.display = 'block';
+  }
 }
+
+function resetCamera(){
+    camera.position.set(10, 12, 18);
+    controls.reset();
+}
+
+function toggleRotation(){
+    controls.autoRotate = !controls.autoRotate;
+}
+
+function closeModal() {
+    document.getElementById('modal').style.display = 'none';
+    controls.autoRotate = true;
+}
+
 
 function animate(){
   requestAnimationFrame(animate);
-  if(isRotating) spiral.rotation.y += 0.002;
+  
+  // Langsame Rotation der Spitze
+  star.rotation.y += 0.005; 
+  
   controls.update();
-  renderer.render(scene,camera);
+  renderer.render(scene, camera);
 }
 animate();
 
@@ -205,10 +309,13 @@ window.onresize = () => {
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f9f9f9; }
         .container { max-width: 1200px; margin: auto; }
-        .placeholder { width: 100%; height: 300px; background-color: #ff0000; color: white; text-align: center; padding-top: 100px; font-size: 24px; }
+        .placeholder { width: 100%; height: 300px; background-color: #fff000; color: white; text-align: center; padding-top: 100px; font-size: 24px; }
         canvas { border: 1px solid #ccc; width: 100%; max-width: 600px; height: 400px; }
         .buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
-        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button { padding: 10px 20px; background-color: 
+#1d4ed8
+
+; color: white; border: none; cursor: pointer; }
         button:hover { background-color: #0056b3; }
         .output { margin-top: 20px; padding: 10px; background-color: #fff; border: 1px solid #ddd; }
         .tooltip { position: relative; display: inline-block; }
@@ -244,6 +351,31 @@ window.onresize = () => {
     <script src="script.js"></script> <!-- Hier wird die externe JS-Datei hinzugefügt -->
 </body>
 </html>
+  <!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Test Dark Mode</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { 
+      margin: 40px; 
+      font-family: 'Inter', sans-serif; 
+      background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+      color: #e6edf3; 
+      line-height: 1.6;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100" height="100" filter="url(%23n)" opacity="0.03"/></svg>');
+    }
+    .card { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Das sieht jetzt viel besser aus!</h1>
+    <p>Weicher Hintergrund, angenehmer Text, subtile Noise-Texture – 2025-ready.</p>
+  </div>
+</body>
+</html>        
 <html>
 <head>
 <title>Golden Ratio Pyramid Labyrinth Simulation</title>
